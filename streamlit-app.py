@@ -1,9 +1,9 @@
 import streamlit as st
-import cv2
+from PIL import Image
 import numpy as np
 import keras
 import pickle
-import io
+
 
 # Load the saved models for expression and gender prediction
 expression_model = keras.models.load_model("ExModel")
@@ -17,7 +17,8 @@ with open('gen_pca.pkl', 'rb') as pickle_file:
 
 # Function to preprocess the image for prediction
 def preprocess_image(image):
-    img = cv2.resize(image, (100, 100))
+    img = image.resize((100, 100))
+    img = np.array(img)
     img2 = img/255.0
     img3 = img2.reshape(1, img.shape[0]*img.shape[1])
     exp_img = exp_pca.transform(img3)
@@ -45,9 +46,15 @@ uploaded_file = st.sidebar.file_uploader("Upload an image", type=["jpg", "png", 
 
 if uploaded_file is not None:
     # Read the uploaded image using OpenCV and convert it to grayscale
-    image_data = io.BytesIO(uploaded_file.read())
-    image = cv2.imdecode(np.frombuffer(image_data.read(), np.uint8), cv2.IMREAD_COLOR)
-    image_gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+    # image_data = io.BytesIO(uploaded_file.read())
+    # image = cv2.imdecode(np.frombuffer(image_data.read(), np.uint8), cv2.IMREAD_COLOR)
+    # image_gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+
+    # Read the uploaded image using Pillow
+    image = Image.open(uploaded_file)
+
+    # Convert the image to grayscale
+    image_gray = image.convert("L")
     
     # Display the uploaded image in grayscale
     st.image(image_gray, caption="Uploaded Image (Grayscale)", use_column_width=True, channels="GRAY")
